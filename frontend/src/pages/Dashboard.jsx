@@ -98,7 +98,7 @@ useEffect(() => {
         await fetchRiskDistribution()
 
       const insightData =
-        await generateInsight()
+        await generateInsight('risk')
 
       setMonthlyData(monthly)
 
@@ -150,14 +150,14 @@ useEffect(() => {
 
       {/* MAIN CONTENT */}
 
-      <main className="pt-[90px] px-4 md:px-8 pb-8 lg:mr-[320px]">
+      <main className="pt-[90px] px-8 pb-8">
 
         {/* TITLE */}
 
         <div className="mb-8" id='overview'>
 
-          <h1 className="text-3xl md:text-5xl font-bold text-cyan-300 uppercase tracking-wide">
-          
+          <h1 className="text-5xl font-bold text-cyan-300 uppercase tracking-wide">
+
             Risk & Operations Hub
 
           </h1>
@@ -172,13 +172,13 @@ useEffect(() => {
 
         {/* CHART GRID */}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full">
+        <div className="grid grid-cols-2 gap-8 w-full">
 
           {/* MONTHLY INCIDENT TRENDS */}
 
           <div
             onClick={() => navigate('/monthly-trends')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-6 md:p-8 min-h-[420px]  w-full
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
             hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
             hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
@@ -238,7 +238,7 @@ useEffect(() => {
 
           <div
             onClick={() => navigate('/region-analysis')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 min-h-[420px] w-full
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
             hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
             hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
@@ -381,7 +381,7 @@ useEffect(() => {
 
           <div
             onClick={() => navigate('/network-performance')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 min-h-[420px] w-full
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
             hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
             hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
@@ -431,7 +431,7 @@ useEffect(() => {
 
           <div
             onClick={() => navigate('/reopen-risk')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 min-h-[420px] w-full
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
             hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
             hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
@@ -504,7 +504,7 @@ useEffect(() => {
 
               <div className="overflow-x-auto">
 
-                <table className="min-w-[900px] w-full">
+                <table className="w-full">
 
                   <thead>
 
@@ -624,7 +624,7 @@ useEffect(() => {
 
       {/* KPI PANEL */}
 
-  <aside className="hidden lg:block fixed right-0 top-0 w-[320px] h-screen bg-[#081726]/95 border-l border-cyan-400/20 p-6 overflow-y-auto z-50">
+  <aside className="fixed right-0 top-0 w-[320px] h-screen bg-[#081726]/95 border-l border-cyan-400/20 p-6 overflow-y-auto z-50">
 
   <h2 className="text-cyan-300 text-xl font-bold uppercase text-center mb-10 leading-10">
 
