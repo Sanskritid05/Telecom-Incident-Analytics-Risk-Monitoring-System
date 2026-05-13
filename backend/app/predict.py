@@ -8,6 +8,7 @@ import numpy as np
 import joblib
 
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 # import google.generativeai as genai
 
@@ -52,6 +53,13 @@ streaming_data = pd.read_csv(
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ==========================================
 # AI GENERATED DASHBOARD SUBTITLES
