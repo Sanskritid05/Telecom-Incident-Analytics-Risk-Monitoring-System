@@ -10,7 +10,7 @@ import {
 import { HelmetProvider } from 'react-helmet-async'
 
 import './index.css'
-import './dashboard.css'
+import './pages/dashboard.css'
 
 import Dashboard from './pages/Dashboard'
 
