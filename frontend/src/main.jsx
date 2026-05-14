@@ -1,7 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { HelmetProvider } from 'react-helmet-async'
-import './dashboard.css'
 
 import {
   BrowserRouter,
@@ -9,7 +7,10 @@ import {
   Route
 } from 'react-router-dom'
 
+import { HelmetProvider } from 'react-helmet-async'
+
 import './index.css'
+import './dashboard.css'
 
 import Dashboard from './pages/Dashboard'
 
@@ -51,34 +52,35 @@ ReactDOM.createRoot(
           }
         >
 
-        <Routes>
+          <Routes>
 
-          <Route
-            path="/"
-            element={<Dashboard />}
-          />
+            <Route
+              path="/"
+              element={<Dashboard />}
+            />
 
-          <Route
-            path="/monthly-trends"
-            element={<MonthlyTrends />}
-          />
+            <Route
+              path="/monthly-trends"
+              element={<MonthlyTrends />}
+            />
 
-          <Route
-            path="/region-analysis"
-            element={<RegionAnalysis />}
-          />
+            <Route
+              path="/region-analysis"
+              element={<RegionAnalysis />}
+            />
 
-          <Route
-            path="/network-performance"
-            element={<NetworkPerformance />}
-          />
+            <Route
+              path="/network-performance"
+              element={<NetworkPerformance />}
+            />
 
-          <Route
-            path="/reopen-risk"
-            element={<ReopenRisk />}
-          />
+            <Route
+              path="/reopen-risk"
+              element={<ReopenRisk />}
+            />
 
-        </Routes>
+          </Routes>
+
         </React.Suspense>
 
       </BrowserRouter>
