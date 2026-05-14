@@ -187,13 +187,21 @@ useEffect(() => {
 
       {/* MAIN CONTENT */}
 
-      <main className="pt-[90px] px-4 md:px-8 lg:mr-[320px] pb-8">
+      <main className="
+        pt-[90px]
+        px-4
+        sm:px-6
+        lg:px-8
+        pb-8
+        w-full
+        xl:pr-[300px]
+      ">      
 
         {/* TITLE */}
 
         <div className="mb-8" id='overview'>
 
-          <h1 className="text-3xl md:text-5xl font-bold text-cyan-300 uppercase tracking-wide">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-bold text-cyan-300 uppercase tracking-wide">
 
             Risk & Operations Hub
 
@@ -209,7 +217,13 @@ useEffect(() => {
 
         {/* CHART GRID */}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full">
+        <div className="grid
+            grid-cols-1
+            md:grid-cols-1
+            xl:grid-cols-2
+            gap-6
+            w-full"
+        >
 
           {/* MONTHLY INCIDENT TRENDS */}
 
@@ -220,8 +234,9 @@ useEffect(() => {
               border
               border-cyan-400/20
               rounded-[30px]
-              p-8
-              h-[420px]
+              p-5 md:p-7
+              min-h-[380px]
+              md:min-h-[420px]
               w-full
               hover:scale-[1.03]
               hover:shadow-cyan-500/20
@@ -239,7 +254,7 @@ useEffect(() => {
 
             </h2>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height="100%">
 
               <LineChart data={monthlyData || []}>
 
@@ -287,8 +302,9 @@ useEffect(() => {
               border
               border-cyan-400/20
               rounded-[30px]
-              p-8
-              h-[420px]
+              p-5 md:p-7
+              min-h-[380px]
+              md:min-h-[420px]
               w-full
               hover:scale-[1.03]
               hover:shadow-cyan-500/20
@@ -306,7 +322,7 @@ useEffect(() => {
 
             </h2>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height="100%">
 
               <PieChart>
 
@@ -352,7 +368,7 @@ useEffect(() => {
               border
               border-cyan-400/20
               rounded-[30px]
-              p-8
+              p-5 md:p-7
               h-[420px]
               w-full
               hover:scale-[1.03]
@@ -371,7 +387,7 @@ useEffect(() => {
 
             </h2>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height="100%">
 
               <BarChart data={networkData || []}>
 
@@ -413,7 +429,7 @@ useEffect(() => {
               border
               border-cyan-400/20
               rounded-[30px]
-              p-8
+              p-5 md:p-7
               h-[420px]
               w-full
               hover:scale-[1.03]
@@ -432,7 +448,7 @@ useEffect(() => {
 
             </h2>
 
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height="100%">
 
               <BarChart data={riskData || []}>
 
@@ -472,20 +488,23 @@ useEffect(() => {
       {/* KPI PANEL */}
 
       <aside className="
-        hidden
-        lg:block
-        fixed
-        right-0
-        top-0
-        w-[320px]
-        h-screen
-        bg-[#081726]/95
-        border-l
-        border-cyan-400/20
-        p-6
-        overflow-y-auto
-        z-50
-      ">
+          hidden
+          xl:flex
+          flex-col
+          fixed
+          right-0
+          top-0
+          w-[280px]
+          2xl:w-[320px]
+          h-screen
+          bg-[#081726]/95
+          border-l
+          border-cyan-400/20
+          p-4
+          lg:p-6
+          overflow-y-auto
+          z-50
+        ">
 
         <h2 className="
           text-cyan-300
@@ -508,7 +527,7 @@ useEffect(() => {
             border
             border-cyan-400/20
             rounded-[28px]
-            p-8
+            p-5 md:p-7
             text-center
           ">
 
