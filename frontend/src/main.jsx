@@ -7,85 +7,51 @@ import {
   Route
 } from 'react-router-dom'
 
-import { HelmetProvider } from 'react-helmet-async'
-
 import './index.css'
-import './pages/dashboard.css'
 
 import Dashboard from './pages/Dashboard'
 
-const MonthlyTrends = React.lazy(() =>
-  import('./pages/MonthlyTrends')
-)
+import MonthlyTrends from './pages/MonthlyTrends'
+import RegionAnalysis from './pages/RegionAnalysis'
+import NetworkPerformance from './pages/NetworkPerformance'
+import ReopenRisk from './pages/ReopenRisk'
 
-const RegionAnalysis = React.lazy(() =>
-  import('./pages/RegionAnalysis')
-)
-
-const NetworkPerformance = React.lazy(() =>
-  import('./pages/NetworkPerformance')
-)
-
-const ReopenRisk = React.lazy(() =>
-  import('./pages/ReopenRisk')
-)
-
-ReactDOM.createRoot(
-  document.getElementById('root')
-).render(
+ReactDOM.createRoot(document.getElementById('root')).render(
 
   <React.StrictMode>
 
-    <HelmetProvider>
+    <BrowserRouter>
 
-      <BrowserRouter>
+      <Routes>
 
-        <React.Suspense
-          fallback={
-            <div className="loading-screen">
+        <Route
+          path="/"
+          element={<Dashboard />}
+        />
 
-              <h1>
-                Loading Dashboard...
-              </h1>
+        <Route
+          path="/monthly-trends"
+          element={<MonthlyTrends />}
+        />
 
-            </div>
-          }
-        >
+        <Route
+          path="/region-analysis"
+          element={<RegionAnalysis />}
+        />
 
-          <Routes>
+        <Route
+          path="/network-performance"
+          element={<NetworkPerformance />}
+        />
 
-            <Route
-              path="/"
-              element={<Dashboard />}
-            />
+        <Route
+          path="/reopen-risk"
+          element={<ReopenRisk />}
+        />
 
-            <Route
-              path="/monthly-trends"
-              element={<MonthlyTrends />}
-            />
+      </Routes>
 
-            <Route
-              path="/region-analysis"
-              element={<RegionAnalysis />}
-            />
-
-            <Route
-              path="/network-performance"
-              element={<NetworkPerformance />}
-            />
-
-            <Route
-              path="/reopen-risk"
-              element={<ReopenRisk />}
-            />
-
-          </Routes>
-
-        </React.Suspense>
-
-      </BrowserRouter>
-
-    </HelmetProvider>
+    </BrowserRouter>
 
   </React.StrictMode>
 )

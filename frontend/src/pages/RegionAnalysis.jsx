@@ -153,7 +153,7 @@ function RegionAnalysis() {
 
 </div>
 
-      <main className=" pt-[90px] px-4 md:px-8 lg:mr-[320px] pb-10">
+      <main className=" pt-[90px] px-8 pb-10">
 
         <div className="mb-8">
 
@@ -171,7 +171,7 @@ function RegionAnalysis() {
 
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-2 gap-8">
 
           {/* PIE */}
 
@@ -462,7 +462,7 @@ function RegionAnalysis() {
 
       {/* KPI PANEL */}
 
-      <aside className="hidden lg:block fixed right-0 top-0 w-[320px] h-screen bg-[#081726]/95 border-l border-cyan-400/20 p-6 overflow-y-auto z-50">
+      <aside className="fixed right-0 top-0 w-[320px] h-screen bg-[#081726]/95 border-l border-cyan-400/20 p-6 overflow-y-auto z-50">
 
         <h2 className="text-cyan-300 text-xl font-bold uppercase text-center mb-10 leading-10">
 

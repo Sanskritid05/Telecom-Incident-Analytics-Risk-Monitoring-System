@@ -8,7 +8,6 @@ body{
     font-family:Arial, Helvetica, sans-serif;
     background:#071028;
     overflow-x:hidden;
-    color:white;
 }
 
 /* =========================
@@ -18,7 +17,7 @@ body{
 .dashboard{
     display:flex;
     min-height:100vh;
-    background:#071028;
+    color:white;
 }
 
 /* =========================
@@ -33,7 +32,6 @@ body{
     position:sticky;
     top:0;
     height:100vh;
-    z-index:100;
 }
 
 .sidebar h2{
@@ -67,21 +65,12 @@ body{
 .main-content{
     flex:1;
     padding:40px;
-    overflow:hidden;
 }
 
 .dashboard-title{
     font-size:42px;
-    margin-bottom:14px;
+    margin-bottom:35px;
     font-weight:700;
-    color:white;
-}
-
-.dashboard-subtitle{
-    color:#8ca4d4;
-    margin-bottom:40px;
-    line-height:1.6;
-    font-size:16px;
 }
 
 /* =========================
@@ -100,7 +89,7 @@ body{
 .kpi-card{
     background:#0f1c3f;
     border:1px solid #1c315f;
-    border-radius:20px;
+    border-radius:18px;
     padding:28px;
     min-height:170px;
 
@@ -108,13 +97,12 @@ body{
     flex-direction:column;
     justify-content:space-between;
 
-    transition:0.3s ease;
+    transition:0.3s;
 }
 
 .kpi-card:hover{
     transform:translateY(-5px);
     border-color:#4da3ff;
-    box-shadow:0 10px 25px rgba(77,163,255,0.15);
 }
 
 .kpi-card h3{
@@ -122,6 +110,7 @@ body{
     font-size:15px;
     font-weight:500;
     line-height:1.4;
+    min-height:45px;
 }
 
 .kpi-card h1{
@@ -146,29 +135,47 @@ body{
 .chart-card{
     background:#0f1c3f;
     border:1px solid #1c315f;
-    border-radius:20px;
+    border-radius:18px;
     padding:24px;
     min-height:450px;
-
-    transition:0.3s ease;
-}
-
-.chart-card:hover{
-    border-color:#4da3ff;
 }
 
 .chart-card h2{
     font-size:20px;
     margin-bottom:20px;
     font-weight:600;
-    color:white;
 }
 
-.chart-description{
-    color:#8ca4d4;
-    font-size:14px;
-    line-height:1.5;
-    margin-bottom:18px;
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1200px){
+
+    .kpi-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .charts-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:900px){
+
+    .dashboard{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+    }
+
+    .kpi-grid{
+        grid-template-columns:1fr;
+    }
 }
 
 /* =========================
@@ -178,20 +185,17 @@ body{
 .risk-table-card{
     background:#0f1c3f;
     border:1px solid #1c315f;
-    border-radius:20px;
+    border-radius:18px;
     padding:24px;
     margin-top:30px;
-    overflow-x:auto;
 }
 
 .risk-table-card h2{
     margin-bottom:20px;
-    color:white;
 }
 
 .risk-table{
     width:100%;
-    min-width:850px;
     border-collapse:collapse;
 }
 
@@ -200,13 +204,11 @@ body{
     padding:18px;
     color:#8ca4d4;
     border-bottom:1px solid #1c315f;
-    font-size:14px;
 }
 
 .risk-table td{
     padding:18px;
     border-bottom:1px solid #162544;
-    font-size:14px;
 }
 
 .risk-high{
@@ -228,40 +230,15 @@ body{
 }
 
 /* =========================
-   LOADING SCREEN
-========================= */
-
-.loading-screen{
-    height:100vh;
-    background:#071028;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-
-    color:#4da3ff;
-}
-
-.loading-screen h1{
-    font-size:32px;
-    margin-bottom:16px;
-}
-
-.loading-screen p{
-    color:#8ca4d4;
-    font-size:16px;
-}
-
-/* =========================
    RECHART TOOLTIP FIX
 ========================= */
 
 .recharts-default-tooltip{
-    background:#0f1c3f !important;
-    border:1px solid #1c315f !important;
-    border-radius:12px !important;
-    padding:12px !important;
+    background:transparent !important;
+    border:none !important;
+    box-shadow:none !important;
+    border-radius:0 !important;
+    padding:0 !important;
 }
 
 .recharts-tooltip-label{
@@ -271,101 +248,6 @@ body{
 
 .recharts-tooltip-item{
     color:#FFC857 !important;
-    font-size:15px !important;
+    font-size:16px !important;
     font-weight:600 !important;
-}
-
-/* =========================
-   SCROLLBAR
-========================= */
-
-::-webkit-scrollbar{
-    width:8px;
-    height:8px;
-}
-
-::-webkit-scrollbar-track{
-    background:#071028;
-}
-
-::-webkit-scrollbar-thumb{
-    background:#1c315f;
-    border-radius:20px;
-}
-
-::-webkit-scrollbar-thumb:hover{
-    background:#4da3ff;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width:1400px){
-
-    .kpi-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-}
-
-@media(max-width:1200px){
-
-    .charts-grid{
-        grid-template-columns:1fr;
-    }
-
-    .main-content{
-        padding:30px;
-    }
-}
-
-@media(max-width:900px){
-
-    .dashboard{
-        flex-direction:column;
-    }
-
-    .sidebar{
-        width:100%;
-        height:auto;
-        position:relative;
-        border-right:none;
-        border-bottom:1px solid #1e2c4d;
-    }
-
-    .sidebar h2{
-        margin-bottom:25px;
-    }
-
-    .kpi-grid{
-        grid-template-columns:1fr;
-    }
-
-    .dashboard-title{
-        font-size:32px;
-    }
-
-    .main-content{
-        padding:20px;
-    }
-}
-
-@media(max-width:600px){
-
-    .dashboard-title{
-        font-size:26px;
-    }
-
-    .chart-card{
-        padding:18px;
-        min-height:400px;
-    }
-
-    .kpi-card{
-        padding:22px;
-    }
-
-    .kpi-card h1{
-        font-size:30px;
-    }
 }
