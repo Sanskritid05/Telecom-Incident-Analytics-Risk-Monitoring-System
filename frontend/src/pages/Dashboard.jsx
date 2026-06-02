@@ -536,12 +536,12 @@ useEffect(() => {
                   </thead>
 
                   <tbody>
-
                     {[1, 2, 3, 4].map((item, index) => {
 
                       const probability = Math.min(
                         Math.max(
-                          (prediction?.reopen_probability || 0) + (Math.random() * 30 - 15),
+                          prediction.reopen_probability +
+                          (Math.random() * 12 - 6),
                           1
                         ),
                         99
@@ -600,13 +600,16 @@ useEffect(() => {
 
                           <td>
 
-                            {Math.floor(Math.random() * 4)}
+                            {prediction.region}
 
                           </td>
 
                           <td>
 
-                            {Math.floor(Math.random() * 5) + 1}
+                            {Math.min(
+                              prediction.priority + index,
+                              5
+                            )}
 
                           </td>
 

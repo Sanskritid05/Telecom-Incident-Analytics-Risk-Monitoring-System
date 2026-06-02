@@ -1,9 +1,27 @@
 import pandas as pd
 import random
+from pathlib import Path
 
-# Load original dataset
+# -----------------------------
+# BASE DIRECTORY
+# -----------------------------
+
+BASE_DIR = Path(__file__).resolve().parents[3]
+
+# -----------------------------
+# LOAD ORIGINAL DATASET
+# -----------------------------
+
+data_path = (
+    BASE_DIR
+    / "backend"
+    / "data"
+    / "raw"
+    / "ISTM.csv"
+)
+
 data = pd.read_csv(
-    r"data/raw/ISTM.csv",
+    data_path,
     low_memory=False
 )
 
@@ -36,83 +54,216 @@ data['Network_Type'] = [
 ]
 
 # -----------------------------
-# LINGUISTICALLY DIVERSE
-# INCIDENT DESCRIPTIONS
-# -----------------------------
-
-incident_descriptions = [
-    "Tower node experiencing signal degradation",
-    "Unexpected packet loss detected in network",
-    "Wireless transmission instability observed",
-    "Network latency spike affecting enterprise users",
-    "Intermittent connectivity disruption in telecom node",
-    "Core router experiencing abnormal traffic congestion",
-    "Repeated signal attenuation detected in mobile tower",
-    "5G infrastructure showing unstable packet delivery",
-    "Network outage impacting regional operations",
-    "VPN tunnel experiencing connectivity interruptions"
-]
-
-request_info_descriptions = [
-    "Information requested for access permissions",
-    "Need clarification regarding network configuration",
-    "Requested details for VPN access setup",
-    "Inquiry raised regarding telecom maintenance window",
-    "User requested operational status update",
-    "Clarification needed for network routing policies",
-    "Requested guidance for wireless service activation",
-    "Information requested about firewall configuration",
-    "Status inquiry raised for telecom infrastructure",
-    "Need details regarding connectivity provisioning"
-]
-
-complaint_descriptions = [
-    "Customer reported repeated connection drops",
-    "User unhappy with delayed issue resolution",
-    "Client reported unstable network performance",
-    "Frequent service interruptions affecting customer operations",
-    "Customer experiencing recurring wireless disruptions"
-]
-
-change_descriptions = [
-    "Request submitted for router configuration update",
-    "Infrastructure upgrade requested for telecom node",
-    "Firewall rule modification requested by operations team",
-    "Change request raised for 5G deployment settings",
-    "Network optimization request submitted"
-]
-
-# -----------------------------
 # DESCRIPTION GENERATOR
 # -----------------------------
 
-def generate_description(category):
+def generate_description(row):
 
-    if category == 'incident':
-        return random.choice(incident_descriptions)
+    category = str(row['Category']).lower()
 
-    elif category == 'request for information':
-        return random.choice(request_info_descriptions)
+    network = str(row['Network_Type'])
 
-    elif category == 'complaint':
-        return random.choice(complaint_descriptions)
+    ci_cat = str(row['CI_Cat'])
 
-    elif category == 'request for change':
-        return random.choice(change_descriptions)
+    reassignments = row['No_of_Reassignments']
+
+    # --------------------------------
+    # SHARED TELECOM VOCABULARY
+    # --------------------------------
+
+    operational_events = [
+        "packet loss affecting telecom traffic",
+        "network latency impacting operations",
+        "intermittent wireless instability observed",
+        "vpn disruption affecting connectivity",
+        "service degradation impacting users",
+        "routing instability detected in network",
+        "traffic congestion affecting node performance",
+        "telecom outage impacting regional services",
+        "network slowdown affecting enterprise traffic",
+        "connectivity fluctuations under investigation"
+    ]
+
+    support_actions = [
+        "awaiting operational confirmation",
+        "ticket escalated to telecom support",
+        "monitoring ongoing service issue",
+        "requires infrastructure verification",
+        "engineering review in progress",
+        "further network analysis required",
+        "issue under telecom investigation"
+    ]
+
+    descriptions = []
+
+    # --------------------------------
+    # CATEGORY TONE
+    # --------------------------------
+    neutral_phrases = [
+        "telecom ticket under investigation",
+        "ongoing operational activity observed",
+        "network operations monitoring update",
+        "telecom workflow activity detected"
+    ]
+    descriptions.append(
+        random.choice(neutral_phrases)
+    )
+
+    if category == "incident":
+
+        incident_phrases = [
+            "critical operational issue detected",
+            "service instability reported",
+            "network issue impacting operations",
+            "telecom disruption identified",
+            "active outage affecting telecom services",
+            "network degradation impacting enterprise traffic",
+            "urgent investigation required for telecom disruption",
+            "request raised for outage escalation support"
+        ]
+
+        request_style_phrases = [
+            "requesting update regarding ongoing issue",
+            "clarification needed for ongoing connectivity issue"
+        ]
+
+        descriptions.append(
+            random.choice(
+                incident_phrases +
+                random.sample(request_style_phrases, 1)
+            )
+    )
+
+    elif category == "request for information":
+
+        request_phrases = [
+            "requesting update regarding ongoing issue",
+            "need clarification regarding service behavior",
+            "request raised for operational review",
+            "seeking status update for telecom issue",
+            "guidance required regarding network instability",
+            "requesting investigation update from telecom team",
+            "clarification needed for ongoing connectivity issue"
+        ]
+
+        incident_style_phrases = [
+            "service instability reported",
+            "network issue impacting operations"
+        ]
+
+        descriptions.append(
+            random.choice(
+                request_phrases +
+                random.sample(incident_style_phrases, 1)
+            )
+        )
 
     else:
-        return "General telecom operational issue reported"
 
-# Generate synthetic descriptions
-data['Incident Description'] = data['Category'].apply(
-    generate_description
+        descriptions.append(
+            "general telecom operational activity"
+        )
+
+        # --------------------------------
+    # SHARED TELECOM CONTEXT
+    # --------------------------------
+
+    descriptions.append(
+        f"{network} {random.choice(operational_events)}"
+    )
+
+    # --------------------------------
+    # SHARED SUPPORT CONTEXT
+    # --------------------------------
+
+    descriptions.append(
+        random.choice(support_actions)
+    )
+
+    # --------------------------------
+    # REASSIGNMENT CONTEXT
+    # --------------------------------
+
+    if pd.notnull(reassignments):
+
+        if reassignments >= 10:
+
+            descriptions.append(
+                "ticket reassigned across multiple teams"
+            )
+
+    # --------------------------------
+    # CI CATEGORY CONTEXT
+    # --------------------------------
+
+    descriptions.append(
+        f"impacting {ci_cat} services"
+    )
+
+    # --------------------------------
+    # RANDOMIZE ORDER
+    # --------------------------------
+
+    random.shuffle(descriptions)
+
+    return " | ".join(descriptions)
+
+    # --------------------------------
+    # SHARED TELECOM CONTEXT
+    # --------------------------------
+
+    descriptions.append(
+        f"{network} {random.choice(operational_events)}"
+    )
+
+    # --------------------------------
+    # SHARED SUPPORT CONTEXT
+    # --------------------------------
+
+    descriptions.append(
+        random.choice(support_actions)
+    )
+
+    # --------------------------------
+    # REASSIGNMENT CONTEXT
+    # --------------------------------
+
+    if pd.notnull(reassignments):
+
+        if reassignments >= 10:
+
+            descriptions.append(
+                "ticket reassigned across multiple teams"
+            )
+
+    # --------------------------------
+    # CI CATEGORY CONTEXT
+    # --------------------------------
+
+    descriptions.append(
+        f"impacting {ci_cat} services"
+    )
+    random.shuffle(descriptions)
+    return " | ".join(descriptions)
+
+# -----------------------------
+# GENERATE DESCRIPTIONS
+# -----------------------------
+
+data['Incident Description'] = data.apply(
+    generate_description,
+    axis=1
 )
 
 # -----------------------------
-# WAS_REOPENED FLAG
+# WAS REOPENED FLAG
 # -----------------------------
 
-data['Was_Reopened'] = data['Reopen_Time'].notnull().astype(int)
+data['Was_Reopened'] = (
+    data['Reopen_Time']
+    .notnull()
+    .astype(int)
+)
 
 # -----------------------------
 # DROP UNUSED COLUMNS
@@ -136,16 +287,31 @@ data.drop(
 # SAVE FINAL DATASET
 # -----------------------------
 
+output_path = (
+    BASE_DIR
+    / "backend"
+    / "data"
+    / "processed"
+    / "final_istm_data.csv"
+)
+
 data.to_csv(
-    r"data/processed/final_istm_data.csv",
+    output_path,
     index=False
 )
 
+# -----------------------------
+# OUTPUT
+# -----------------------------
+
 print("\nFinal synthetic telecom dataset created successfully.")
+
 print("\nDataset Shape:", data.shape)
 
-# Display full text properly
-pd.set_option('display.max_colwidth', None)
+pd.set_option(
+    'display.max_colwidth',
+    None
+)
 
 print("\nSample Incident Descriptions:\n")
 

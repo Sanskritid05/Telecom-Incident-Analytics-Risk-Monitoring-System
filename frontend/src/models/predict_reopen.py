@@ -1,24 +1,42 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    accuracy_score,
+    confusion_matrix,
+    roc_auc_score,
+    average_precision_score,
+    precision_score,
+    recall_score,
+    f1_score
+)
+
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 # -----------------------------
 # LOAD PREPROCESSED DATA
 # -----------------------------
 
+data_path = (
+    BASE_DIR
+    / "backend"
+    / "data"
+    / "processed"
+    / "preprocessed_data.csv"
+)
+
 data = pd.read_csv(
-    r"data/processed/preprocessed_data.csv",
+    data_path,
     low_memory=False
 )
 
 print("\nDataset Loaded Successfully.")
-
+print(f"\nLoaded Dataset From:\n{data_path}")
 # -----------------------------
 # SELECT FEATURES
 # -----------------------------
@@ -121,9 +139,12 @@ X_train, X_test, y_train, y_test = train_test_split(
 # -----------------------------
 
 model = RandomForestClassifier(
-    n_estimators=200,
-    class_weight='balanced',
-    random_state=42
+    n_estimators=300,
+    max_depth=12,
+    min_samples_leaf=5,
+    class_weight='balanced_subsample',
+    random_state=42,
+    n_jobs=-1
 )
 
 # Train model
@@ -133,10 +154,14 @@ model.fit(X_train, y_train)
 # PREDICTIONS
 # -----------------------------
 
-y_pred = model.predict(X_test)
+threshold = 0.50
 
 # Risk probabilities
 y_prob = model.predict_proba(X_test)[:, 1]
+
+y_pred = (
+    y_prob >= threshold
+).astype(int)
 
 # -----------------------------
 # INCIDENT RISK SCORES
@@ -165,8 +190,45 @@ print(
 
 accuracy = accuracy_score(y_test, y_pred)
 
+roc_auc = roc_auc_score(
+    y_test,
+    y_prob
+)
+
+pr_auc = average_precision_score(
+    y_test,
+    y_prob
+)
+
+precision = precision_score(
+    y_test,
+    y_pred
+)
+
+recall = recall_score(
+    y_test,
+    y_pred
+)
+
+f1 = f1_score(
+    y_test,
+    y_pred
+)
+
 print("\nModel Accuracy:")
 print(round(accuracy * 100, 2), "%")
+
+print("\n--- Advanced Evaluation Metrics ---")
+
+print(f"ROC-AUC Score: {roc_auc:.4f}")
+
+print(f"PR-AUC Score: {pr_auc:.4f}")
+
+print(f"Precision: {precision:.4f}")
+
+print(f"Recall: {recall:.4f}")
+
+print(f"F1 Score: {f1:.4f}")
 
 print("\nClassification Report:\n")
 

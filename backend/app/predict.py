@@ -42,9 +42,25 @@ ml_model = joblib.load(
 # LOAD STREAMING DATASET
 # ==========================================
 
-streaming_data = pd.read_csv(
+from pathlib import Path
 
-    'data/processed/processed_ml_data.csv'
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+data_path = (
+    BASE_DIR
+    / "data"
+    / "processed"
+    / "preprocessed_data.csv"
+)
+
+streaming_data = pd.read_csv(
+    data_path,
+    low_memory=False
+)
+
+streaming_data['Urgency'] = (
+    streaming_data['Urgency']
+    .astype(str)
 )
 
 # ==========================================
@@ -491,18 +507,14 @@ def live_prediction():
     ])
 
 
-    # PREDICT PROBABILITY
+    # ==========================================
+    # REAL MODEL PROBABILITY
+    # ==========================================
 
-    base_probability = ml_model.predict_proba(
+    probability = ml_model.predict_proba(
         input_data
     )[0][1]
 
-    noise = random.uniform(-0.25, 0.25)
-
-    probability = min(
-        max(base_probability + noise, 0),
-        1
-    )
 
     # CUSTOM THRESHOLD
 
@@ -534,6 +546,25 @@ def live_prediction():
 
 
     # RESPONSE
+    # HUMAN READABLE LABELS
+
+    region_mapping = {
+        0: 'APAC',
+        1: 'EMEA',
+        2: 'LATAM',
+        3: 'NAM'
+    }
+
+    network_mapping = {
+        0: '5G Network',
+        1: 'Core Network',
+        2: 'Wireless Network',
+        3: 'VPN Service',
+        4: 'Mobile Core',
+        5: 'Fiber Network'
+    }
+
+    # RESPONSE
 
     return {
 
@@ -550,12 +581,14 @@ def live_prediction():
 
         'actual_reopened': actual_target,
 
-        'region': int(
-            incident['Region']
+        'region': region_mapping.get(
+            int(incident['Region']),
+            'Unknown'
         ),
 
-        'network_type': int(
-            incident['Network_Type']
+        'network_type': network_mapping.get(
+            int(incident['Network_Type']),
+            'Unknown'
         ),
 
         'priority': int(
@@ -1462,44 +1495,51 @@ def network_dashboard():
 def reopen_risk_dashboard():
 
     # ==========================================
-    # ML-LIKE PROBABILITIES
+    # REAL ML PROBABILITIES
     # ==========================================
 
-    probs = np.random.uniform(
+    feature_columns = [
+        'Impact',
+        'Urgency',
+        'Priority',
+        'No_of_Reassignments',
+        'Handle_Time_hrs',
+        'Region',
+        'Network_Type',
+        'CI_Cat',
+        'Open_Month',
+        'Open_Hour',
+        'Resolution_Time_Hours'
+    ]
 
-        0,
-        1,
+    model_input = streaming_data[
+        feature_columns
+    ].copy()
 
-        len(streaming_data)
-    )
-
+    probs = ml_model.predict_proba(
+        model_input
+    )[:, 1]
 
     # ==========================================
     # RISK SEGMENTS
     # ==========================================
 
     low = int(
-
         np.sum(probs < 0.4)
     )
 
     medium = int(
-
         np.sum(
-
             (probs >= 0.4) &
             (probs < 0.7)
         )
     )
 
     high = int(
-
         np.sum(probs >= 0.7)
     )
 
-
     total = low + medium + high
-
 
     # ==========================================
     # RISK CATEGORY
@@ -1509,7 +1549,6 @@ def reopen_risk_dashboard():
 
         {
             "name": "Low",
-
             "value": round(
                 (low / total) * 100,
                 2
@@ -1518,7 +1557,6 @@ def reopen_risk_dashboard():
 
         {
             "name": "Medium",
-
             "value": round(
                 (medium / total) * 100,
                 2
@@ -1527,14 +1565,12 @@ def reopen_risk_dashboard():
 
         {
             "name": "High",
-
             "value": round(
                 (high / total) * 100,
                 2
             )
         }
     ]
-
 
     # ==========================================
     # MONTHLY GROUPING
@@ -1550,7 +1586,6 @@ def reopen_risk_dashboard():
 
         .reset_index(name='value')
     )
-
 
     month_mapping = {
 
@@ -1572,7 +1607,6 @@ def reopen_risk_dashboard():
         'Open_Month'
     ].map(month_mapping)
 
-
     # ==========================================
     # REOPEN TRENDS
     # ==========================================
@@ -1581,7 +1615,6 @@ def reopen_risk_dashboard():
 
         {
             "month": row['month'],
-
             "value": int(
                 row['value'] * 0.08
             )
@@ -1589,7 +1622,6 @@ def reopen_risk_dashboard():
 
         for _, row in monthly.iterrows()
     ]
-
 
     # ==========================================
     # ESCALATION DENSITY
@@ -1599,7 +1631,6 @@ def reopen_risk_dashboard():
 
         {
             "month": row['month'],
-
             "value": int(
                 row['value'] * 0.03
             )
@@ -1607,7 +1638,6 @@ def reopen_risk_dashboard():
 
         for _, row in monthly.iterrows()
     ]
-
 
     # ==========================================
     # RESOLUTION EFFICIENCY
@@ -1631,8 +1661,6 @@ def reopen_risk_dashboard():
 
         for _, row in monthly.iterrows()
     ]
-
-    
 
     # ==========================================
     # RETURN
@@ -1674,8 +1702,4 @@ def reopen_risk_dashboard():
 
                 f"{round(high * 0.02, 1)} hrs"
         }
-
-        
     }
-
-

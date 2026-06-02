@@ -1,12 +1,23 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
+
+BASE_DIR = Path(__file__).resolve().parents[3]
 # -----------------------------
 # LOAD DATASET
 # -----------------------------
 
+data_path = (
+    BASE_DIR
+    / "backend"
+    / "data"
+    / "processed"
+    / "final_istm_data.csv"
+)
+
 data = pd.read_csv(
-    r"data/processed/final_istm_data.csv",
+    data_path,
     low_memory=False
 )
 
@@ -99,8 +110,16 @@ print(data.dtypes)
 # SAVE PREPROCESSED DATA
 # -----------------------------
 
+output_path = (
+    BASE_DIR
+    / "backend"
+    / "data"
+    / "processed"
+    / "preprocessed_data.csv"
+)
+
 data.to_csv(
-    r"data/processed/preprocessed_data.csv",
+    output_path,
     index=False
 )
 

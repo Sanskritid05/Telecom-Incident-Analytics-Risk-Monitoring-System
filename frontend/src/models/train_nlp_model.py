@@ -7,12 +7,23 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parents[3]
+
 # -----------------------------
 # LOAD DATA
 # -----------------------------
 
+data_path = (
+    BASE_DIR
+    / "backend"
+    / "data"
+    / "processed"
+    / "preprocessed_data.csv"
+)
+
 data = pd.read_csv(
-    r"data/processed/nlp_processed_data.csv",
+    data_path,
     low_memory=False
 )
 
@@ -27,11 +38,23 @@ valid_categories = [
 
 data = data[data['Category'].isin(valid_categories)]
 
+print("\nCategory Distribution:\n")
+
+print(data['Category'].value_counts())
+
+print("\nSample NLP Descriptions:\n")
+
+print(
+    data[
+        ['Category', 'Incident Description']
+    ].sample(15)
+)
+
 # -----------------------------
 # FEATURES & TARGET
 # -----------------------------
 
-X = data['Cleaned_Description']
+X = data['Incident Description']
 y = data['Category']
 
 # -----------------------------
