@@ -170,15 +170,9 @@ def generate_ai_subtitle(dashboard: str):
             Generate ONE telecom operational insight.
             '''
 
-        response = gemini_model.generate_content(
-            prompt
-        )
-
         return {
-
-            'subtitle':
-
-                response.text
+        'subtitle':
+            'AI operational monitoring active.'
         }
 
     except Exception as e:
@@ -193,15 +187,6 @@ def generate_ai_subtitle(dashboard: str):
 
                 str(e)
         }
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 # ==========================================
 # INPUT SCHEMA
@@ -485,6 +470,8 @@ def live_prediction():
 
         'Incident_Description',
 
+        'Incident Description',
+
         'No_of_Related_Interactions',
 
         'No_of_Related_Incidents',
@@ -508,6 +495,20 @@ def live_prediction():
         incident_features
 
     ])
+
+    # ==========================================
+    # ALIGN FEATURES WITH TRAINING SCHEMA
+    # ==========================================
+
+    expected_columns = ml_model.feature_names_in_
+
+    for col in expected_columns:
+
+        if col not in input_data.columns:
+
+            input_data[col] = 0
+
+    input_data = input_data[expected_columns]
 
 
     # ==========================================
