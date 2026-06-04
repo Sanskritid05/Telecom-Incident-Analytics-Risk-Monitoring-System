@@ -123,7 +123,9 @@ useEffect(() => {
 
     } catch (error) {
 
-      console.log(error)
+      console.log("DASHBOARD ERROR:", error)
+
+      setLoading(false)
     }
   }
 
