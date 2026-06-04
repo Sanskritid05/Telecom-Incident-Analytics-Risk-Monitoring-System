@@ -780,28 +780,18 @@ def region_analysis():
 
     )
 
-    region_mapping = {
+    region_data = region_data.rename(
 
-        0: 'APAC',
-        1: 'EMEA',
-        2: 'LATAM',
-        3: 'NAM'
-    }
+        columns={
 
-    region_data['name'] = region_data[
-        'Region'
-    ].map(region_mapping)
-
-    result = region_data[[
-
-        'name',
-        'value'
-
-    ]].to_dict(
-        orient='records'
+            'Region': 'name'
+        }
     )
 
-    return result
+    return region_data.to_dict(
+
+        orient='records'
+    )
 
 # ==========================================
 # LIVE NETWORK PERFORMANCE
