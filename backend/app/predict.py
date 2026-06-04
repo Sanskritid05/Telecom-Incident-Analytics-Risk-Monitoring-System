@@ -261,6 +261,12 @@ def predict_reopen(data: TelecomIncident):
         data.dict()
     ])
 
+    print("\nMODEL INPUT COLUMNS:\n")
+    print(input_data.columns)
+
+    print("\nMODEL INPUT TYPES:\n")
+    print(input_data.dtypes)
+
     probability = ml_model.predict_proba(
         input_data
     )[0][1]
@@ -335,19 +341,12 @@ def generate_insight():
     }
 
 
-    region = region_mapping.get(
-
-        int(incident['Region']),
-
-        'Global'
+    region = str(
+        incident['Region']
     )
 
-
-    network = network_mapping.get(
-
-        int(incident['Network_Type']),
-
-        'Telecom'
+    network = str(
+        incident['Network_Type']
     )
 
 
@@ -468,8 +467,6 @@ def live_prediction():
 
         'Handle_Time_hrs',
 
-        'Incident_Description',
-
         'Incident Description',
 
         'No_of_Related_Interactions',
@@ -500,15 +497,42 @@ def live_prediction():
     # ALIGN FEATURES WITH TRAINING SCHEMA
     # ==========================================
 
-    expected_columns = ml_model.feature_names_in_
+    # ==========================================
+# KEEP ONLY TRAINED MODEL FEATURES
+# ==========================================
+
+    expected_columns = list(
+        ml_model.feature_names_in_
+    )
+
+    clean_input = pd.DataFrame()
 
     for col in expected_columns:
 
-        if col not in input_data.columns:
+        if col in input_data.columns:
 
-            input_data[col] = 0
+            clean_input[col] = input_data[col]
 
-    input_data = input_data[expected_columns]
+        else:
+
+            clean_input[col] = 0
+
+    input_data = clean_input
+
+    # ==========================================
+    # REMOVE STRING / OBJECT FEATURES
+    # ==========================================
+
+    for col in input_data.columns:
+
+        input_data[col] = pd.to_numeric(
+
+            input_data[col],
+
+            errors='coerce'
+        )
+
+    input_data = input_data.fillna(0)
 
 
     # ==========================================
@@ -585,14 +609,12 @@ def live_prediction():
 
         'actual_reopened': actual_target,
 
-        'region': region_mapping.get(
-            int(incident['Region']),
-            'Unknown'
+        'region': str(
+            incident['Region']
         ),
 
-        'network_type': network_mapping.get(
-            int(incident['Network_Type']),
-            'Unknown'
+        'network_type': str(
+            incident['Network_Type']
         ),
 
         'priority': int(
@@ -1502,27 +1524,62 @@ def reopen_risk_dashboard():
     # REAL ML PROBABILITIES
     # ==========================================
 
-    feature_columns = [
-        'Impact',
-        'Urgency',
-        'Priority',
-        'No_of_Reassignments',
+    model_input = streaming_data.copy()
+
+    drop_columns = [
+
+        'Was_Reopened',
+
+        'Incident_ID',
+
+        'Reopen_Time',
+
+        'Resolved_Time',
+
+        'Close_Time',
+
         'Handle_Time_hrs',
-        'Region',
-        'Network_Type',
-        'CI_Cat',
-        'Open_Month',
-        'Open_Hour',
-        'Resolution_Time_Hours'
+
+        'Incident Description',
+
+        'No_of_Related_Interactions',
+
+        'No_of_Related_Incidents',
+
+        'No_of_Related_Changes'
     ]
 
-    model_input = streaming_data[
-        feature_columns
-    ].copy()
+    for col in drop_columns:
+
+        if col in model_input.columns:
+
+            model_input = model_input.drop(columns=[col])
+
+    expected_columns = ml_model.feature_names_in_
+
+    for col in expected_columns:
+
+        if col not in model_input.columns:
+
+            model_input[col] = 0
+
+    model_input = model_input[expected_columns]
+
+    for col in model_input.columns:
+
+        model_input[col] = pd.to_numeric(
+
+            model_input[col],
+
+            errors='coerce'
+        )
+
+    model_input = model_input.fillna(0)
 
     probs = ml_model.predict_proba(
         model_input
     )[:, 1]
+    
 
     # ==========================================
     # RISK SEGMENTS
