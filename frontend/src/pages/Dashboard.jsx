@@ -22,30 +22,36 @@ import {
 } from 'recharts'
 
 import {
-
   predictReopenRisk,
-
   fetchLiveKPIs,
-
-  fetchMonthlyDashboard,
-
-  fetchRegionDashboard,
-
-  fetchNetworkDashboard,
-
-  fetchRiskDashboard,
-
-  generateInsight
+  fetchMonthlyTrends,
+  fetchRegionAnalysis,
+  fetchNetworkPerformance,
+  fetchRiskDistribution,
+  generateInsight,
+  warmupBackend
 
 } from '../services/api'
 
 function Dashboard() {
 
+
+
+  // =========================
+  // NAVIGATION
+  // =========================
+
   const navigate = useNavigate()
 
-  const [prediction, setPrediction] = useState({})
+  // =========================
+  // STATES
+  // =========================
 
-  const [kpis, setKpis] = useState({})
+  const [prediction, setPrediction] = useState(null)
+
+  const [loading, setLoading] = useState(true)
+
+  const [kpis, setKpis] = useState(null)
 
   const [monthlyData, setMonthlyData] = useState([])
 
@@ -57,128 +63,114 @@ function Dashboard() {
 
   const [insight, setInsight] = useState('')
 
-  const [loading, setLoading] = useState(true)
-
   const COLORS = [
-
-    '#00D1FF',
-    '#FFC857',
-    '#1E90FF',
-    '#22C55E'
+  '#00D1FF',
+  '#FFC857',
+  '#1E90FF',
+  '#22C55E'
   ]
 
-  useEffect(() => {
+  // =========================
+  // LIVE AI FETCHING
+  // =========================
 
-    const loadDashboard = async () => {
+useEffect(() => {
 
-      try {
+  const fetchAIData = async () => {
 
-        const predictionData =
+    try {
 
-          await predictReopenRisk()
+      await warmupBackend()
 
-        setPrediction(
-          predictionData || {}
-        )
+      const predictionData =
+        await predictReopenRisk()
 
-        const kpiData =
+      const kpiData =
+        await fetchLiveKPIs()
 
-          await fetchLiveKPIs()
+      const monthly =
+        await fetchMonthlyTrends()
 
-        setKpis(
-          kpiData || {}
-        )
+      const regions =
+        await fetchRegionAnalysis()
 
-        const monthly =
+      const network =
+        await fetchNetworkPerformance()
 
-          await fetchMonthlyDashboard()
+      const risk =
+        await fetchRiskDistribution()
 
-        setMonthlyData(
+      const insightData =
+        await generateInsight('risk')
 
-          monthly?.monthlyIncidents || []
-        )
+      setMonthlyData(monthly)
 
-        const regions =
+      setRegionData(regions)
 
-          await fetchRegionDashboard()
+      setNetworkData(network)
 
-        setRegionData(
+      setRiskData(risk)
 
-          regions?.regionDistribution || []
-        )
+      setPrediction(predictionData)
 
+      setKpis(kpiData)
 
-        const network =
+      setInsight(
+        insightData.ai_insight
+      )
 
-          await fetchNetworkDashboard()
+      setLoading(false)
 
-        setNetworkData(
+    } catch (error) {
 
-          network || []
-        )
-
-        const risk =
-
-          await fetchRiskDashboard()
-
-        setRiskData(
-
-          risk?.riskCategory || []
-        )
-
-        const insightData =
-
-          await generateInsight()
-
-        setInsight(
-
-          insightData?.ai_insight ||
-
-          'AI Telecom Intelligence Platform'
-        )
-
-      } catch (error) {
-
-        console.log(
-          'Dashboard Error:',
-          error
-        )
-
-      } finally {
-
-        setLoading(false)
-      }
+      console.log(error)
     }
+  }
 
-    loadDashboard()
+  fetchAIData()
 
-  }, [])
+  const interval = setInterval(() => {
+
+    fetchAIData()
+
+  }, 10000)
+
+  return () => clearInterval(interval)
+
+}, [])
 
   if (loading) {
 
-    return (
-
-      <div className="h-screen bg-[#061223] flex items-center justify-center text-cyan-300 text-2xl font-bold">
-
-        Loading Telecom Intelligence Dashboard...
-
-      </div>
-    )
-  }
-
   return (
 
-    <div className="bg-[#061223] min-h-screen text-white">
+    <div className="h-screen bg-[#061223] flex items-center justify-center text-cyan-300 text-2xl font-bold">
+
+      Initializing Telecom Intelligence System...
+
+    </div>
+  )
+  }
+  return (
+
+    <div className="bg-[#061223] min-h-screen text-white overflow-x-hidden">
+
+      {/* SIDEBAR */}
 
       <Sidebar />
 
+      {/* HEADER */}
+
       <Header />
 
-      <main className="pt-[90px] px-8 pb-10">
+      {/* MAIN CONTENT */}
 
-        <div className="mb-8">
+      <main className="pt-[90px] px-8 pb-8">
 
-          <h1 className="text-4xl font-bold text-cyan-300 uppercase">
+        {/* TITLE */}
+
+        <div className="mb-8" id='overview'>
+
+          <h1 className="text-5xl font-bold text-cyan-300 uppercase tracking-wide">
 
             Risk & Operations Hub
 
@@ -192,96 +184,20 @@ function Dashboard() {
 
         </div>
 
-        {/* RIGHT KPI PANEL */}
+        {/* CHART GRID */}
 
-        <aside className="fixed right-0 top-0 w-[320px] h-screen bg-[#081726]/95 border-l border-cyan-400/20 p-6 overflow-y-auto z-50">
+        <div className="grid grid-cols-2 gap-8 w-full">
 
-          <h2 className="text-cyan-300 text-xl font-bold uppercase text-center mb-10 leading-10">
-
-            Key Performance Indicators
-
-          </h2>
-
-          <div className="space-y-3">
-
-            <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center">
-
-              <p className="text-gray-400 uppercase mb-4 tracking-wide">
-
-                Total Incidents
-
-              </p>
-
-              <h1 className="text-3xl font-bold text-cyan-300">
-
-                {kpis?.total_incidents || 0}
-
-              </h1>
-
-            </div>
-
-            <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center">
-
-              <p className="text-gray-400 uppercase mb-4 tracking-wide">
-
-                High Risk Tickets
-
-              </p>
-
-              <h1 className="text-3xl font-bold text-red-400">
-
-                {riskData[2]?.value || 0}%
-
-              </h1>
-
-            </div>
-
-            <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center">
-
-              <p className="text-gray-400 uppercase mb-4 tracking-wide">
-
-                Low Risk Tickets
-
-              </p>
-
-              <h1 className="text-3xl font-bold text-green-400">
-
-                {riskData[0]?.value || 0}%
-
-              </h1>
-
-            </div>
-
-            <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center">
-
-              <p className="text-gray-400 uppercase mb-4 tracking-wide">
-
-                Avg Resolution Time
-
-              </p>
-
-              <h1 className="text-3xl font-bold text-yellow-400">
-
-                {kpis?.avg_resolution_time || 0} hrs
-
-              </h1>
-
-            </div>
-
-          </div>
-
-        </aside>
-
-        {/* GRID */}
-
-        <div className="grid grid-cols-2 gap-8 pr-[340px]">
+          {/* MONTHLY INCIDENT TRENDS */}
 
           <div
             onClick={() => navigate('/monthly-trends')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] cursor-pointer"
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
+            hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
+            hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
 
-            <h2 className="text-xl font-bold text-cyan-300 mb-8">
+            <h2 className="text-xl font-bold text-cyan-300 uppercase mb-8 tracking-wide">
 
               Monthly Incident Trends
 
@@ -289,38 +205,59 @@ function Dashboard() {
 
             <ResponsiveContainer width="100%" height={260}>
 
-              <LineChart data={monthlyData}>
+              <LineChart data={monthlyData || []}>
 
-                <CartesianGrid stroke="#16324d" />
+                <CartesianGrid
+                  stroke="#16324d"
+                  strokeDasharray="3 3"
+                />
 
                 <XAxis
                   dataKey="month"
                   stroke="#94A3B8"
+                  tick={{ fill: '#94A3B8' }}
                 />
 
-                <YAxis stroke="#94A3B8" />
+                <YAxis
+                  stroke="#94A3B8"
+                  tick={{ fill: '#94A3B8' }}
+                />
 
                 <Tooltip />
 
                 <Line
                   type="monotone"
-                  dataKey="value"
+                  dataKey="incidents"
                   stroke="#FFC857"
                   strokeWidth={4}
+                  dot={{
+                    r: 5,
+                    fill: '#FFC857'
+                  }}
                 />
 
               </LineChart>
 
             </ResponsiveContainer>
 
+            <p className="text-gray-400 mt-6 text-sm">
+
+              {/* {insight} */}
+
+            </p>
+
           </div>
+
+          {/* REGION ANALYSIS */}
 
           <div
             onClick={() => navigate('/region-analysis')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] cursor-pointer"
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
+            hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
+            hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
 
-            <h2 className="text-xl font-bold text-cyan-300 mb-8">
+            <h2 className="text-xl font-bold text-cyan-300 uppercase mb-8 tracking-wide">
 
               Region Analysis
 
@@ -331,11 +268,81 @@ function Dashboard() {
               <PieChart>
 
                 <Pie
-                  data={regionData}
+                  data={regionData || []}
                   dataKey="value"
-                  nameKey="name"
-                  outerRadius={100}
-                  label
+                  outerRadius={78}
+                  labelLine={false}
+                  innerRadius={45}
+                  paddingAngle={3}
+                  label={({ 
+                    cx,
+                    cy,
+                    midAngle,
+                    outerRadius,
+                    percent,
+                    name,
+                    fill
+                  }) => {
+
+                    const RADIAN = Math.PI / 180
+
+                    // line start
+                    const sx =
+                      cx + outerRadius * Math.cos(-midAngle * RADIAN)
+
+                    const sy =
+                      cy + outerRadius * Math.sin(-midAngle * RADIAN)
+
+                    // line middle
+                    const mx =
+                      cx + (outerRadius + 20) * Math.cos(-midAngle * RADIAN)
+
+                    const my =
+                      cy + (outerRadius + 20) * Math.sin(-midAngle * RADIAN)
+
+                    // label position
+                    const ex =
+                      cx + (outerRadius + 28) * Math.cos(-midAngle * RADIAN)
+
+                    const ey =
+                      cy + (outerRadius + 28
+
+                      ) * Math.sin(-midAngle * RADIAN)
+
+                    const textAnchor =
+                      ex > cx ? 'start' : 'end'
+
+                    return (
+
+                      <g>
+
+                        {/* CONNECTOR LINE */}
+
+                        <path
+                          d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+                          stroke={fill}
+                          fill="none"
+                          strokeWidth={2}
+                        />
+
+                        {/* LABEL TEXT */}
+
+                        <text
+                          x={ex}
+                          y={ey}
+                          fill={fill}
+                          textAnchor={textAnchor}
+                          dominantBaseline="central"
+                          fontSize={12}
+                          fontWeight="500"
+                        >
+                          {`${name} ${(percent * 100).toFixed(0)}%`}
+                        </text>
+
+                      </g>
+                    )
+                  }}
+          
                 >
 
                   {
@@ -348,13 +355,35 @@ function Dashboard() {
                       />
 
                     ))
+
                   }
 
                 </Pie>
 
-                <Tooltip />
+                <Tooltip
+                  formatter={(value, name) => {
 
-                <Legend />
+                    const total = (regionData || []).reduce(
+                      (sum, item) => sum + item.value,
+                      0
+                    )
+
+                    const percentage = (
+                      (value / total) * 100
+                    ).toFixed(1)
+
+                    return [
+                      `${value} (${percentage}%)`,
+                      name
+                    ]
+                  }}
+                />
+
+                <Legend
+                  wrapperStyle={{
+                    fontSize: '20px'
+                  }}
+                  ></Legend>
 
               </PieChart>
 
@@ -362,12 +391,16 @@ function Dashboard() {
 
           </div>
 
+          {/* NETWORK PERFORMANCE */}
+
           <div
             onClick={() => navigate('/network-performance')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] cursor-pointer"
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
+            hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
+            hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
 
-            <h2 className="text-xl font-bold text-cyan-300 mb-8">
+            <h2 className="text-xl font-bold text-cyan-300 uppercase mb-8 tracking-wide">
 
               Network Performance
 
@@ -375,23 +408,31 @@ function Dashboard() {
 
             <ResponsiveContainer width="100%" height={260}>
 
-              <BarChart data={networkData}>
+              <BarChart data={networkData || []}>
 
-                <CartesianGrid stroke="#16324d" />
+                <CartesianGrid
+                  stroke="#16324d"
+                  strokeDasharray="3 3"
+                />
 
                 <XAxis
                   dataKey="name"
                   stroke="#94A3B8"
+                  tick={{ fill: '#94A3B8' }}
                 />
 
-                <YAxis stroke="#94A3B8" />
+                <YAxis
+                  stroke="#94A3B8"
+                  tick={{ fill: '#94A3B8' }}
+                />
 
                 <Tooltip />
 
                 <Bar
                   dataKey="value"
                   fill="#00D1FF"
-                  radius={[10, 10, 0, 0]}
+                  radius={[12, 12, 0, 0]}
+                  barSize={60}
                 />
 
               </BarChart>
@@ -400,12 +441,16 @@ function Dashboard() {
 
           </div>
 
+          {/* REOPEN RISK */}
+
           <div
             onClick={() => navigate('/reopen-risk')}
-            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] cursor-pointer"
+            className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 h-[420px] min-w-[450px]
+            hover:scale-[1.03] hover:shadow-cyan-500/20 hover:shadow-2xl
+            hover:border-cyan-300 transition-all duration-300 cursor-pointer"
           >
 
-            <h2 className="text-xl font-bold text-cyan-300 mb-8">
+            <h2 className="text-xl font-bold text-cyan-300 uppercase mb-8 tracking-wide">
 
               Reopen Risk
 
@@ -413,23 +458,31 @@ function Dashboard() {
 
             <ResponsiveContainer width="100%" height={260}>
 
-              <BarChart data={riskData}>
+              <BarChart data={riskData || []}>
 
-                <CartesianGrid stroke="#16324d" />
+                <CartesianGrid
+                  stroke="#16324d"
+                  strokeDasharray="3 3"
+                />
 
                 <XAxis
                   dataKey="name"
                   stroke="#94A3B8"
+                  tick={{ fill: '#94A3B8' }}
                 />
 
-                <YAxis stroke="#94A3B8" />
+                <YAxis
+                  stroke="#94A3B8"
+                  tick={{ fill: '#94A3B8' }}
+                />
 
                 <Tooltip />
 
                 <Bar
                   dataKey="value"
                   fill="#FFC857"
-                  radius={[10, 10, 0, 0]}
+                  radius={[12, 12, 0, 0]}
+                  barSize={60}
                 />
 
               </BarChart>
@@ -440,10 +493,278 @@ function Dashboard() {
 
         </div>
 
+        {/* DYNAMIC RISK TABLE */}
+
+        <div id="risk-table" className="mt-8 bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[30px] p-8 hover:shadow-cyan-500/10 hover:shadow-2xl transition-all duration-300">
+
+          <h2 className="text-2xl font-bold text-cyan-300 uppercase mb-8 tracking-wide">
+
+            Risk Intelligence Table
+
+          </h2>
+
+          {
+
+            loading ? (
+
+              <p className="text-gray-400">
+
+                {/* {insight} */}
+
+
+              </p>
+
+            ) : (
+
+              <div className="overflow-x-auto">
+
+                <table className="w-full">
+
+                  <thead>
+
+                    <tr className="text-left border-b border-cyan-400/20 text-cyan-300 uppercase tracking-wide">
+
+                      <th className="py-5">Incident ID</th>
+                      <th>Risk Score</th>
+                      <th>Risk Level</th>
+                      <th>Region</th>
+                      <th>Priority</th>
+                      <th>Last Updated</th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    {[1, 2, 3, 4].map((item, index) => {
+
+                      const probability = Math.min(
+                        Math.max(
+                          (prediction?.reopen_probability || 0) + (Math.random() * 30 - 15),
+                          1
+                        ),
+                        99
+                      )
+
+                      return (
+
+                        <tr
+                          key={index}
+                          className="border-b border-cyan-400/10 hover:bg-cyan-500/5 transition-all"
+                        >
+
+                          <td className="py-5">
+
+                            IMC{Math.floor(Math.random() * 10000)}
+
+                          </td>
+
+                          <td>
+
+                            {probability.toFixed(2)}%
+
+                          </td>
+
+                          <td>
+
+                            <span
+                              className={`px-4 py-1 rounded-full text-sm
+
+                              ${
+                                probability > 70
+                                  ? 'bg-red-500/20 text-red-400'
+                                  : probability > 40
+                                  ? 'bg-yellow-500/20 text-yellow-400'
+                                  : 'bg-green-500/20 text-green-400'
+                              }
+                            `}
+                            >
+
+                              {
+
+                                probability > 70
+
+                                  ? 'HIGH'
+
+                                  : probability > 40
+
+                                  ? 'MED'
+
+                                  : 'LOW'
+                              }
+
+                            </span>
+
+                          </td>
+
+                          <td>
+
+                            {Math.floor(Math.random() * 4)}
+
+                          </td>
+
+                          <td>
+
+                            {Math.floor(Math.random() * 5) + 1}
+
+                          </td>
+
+                          <td>
+
+                            {new Date().toLocaleTimeString()}
+
+                          </td>
+
+                        </tr>
+                      )
+                    })}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            )
+
+          }
+
+        </div>
+
       </main>
+
+      {/* KPI PANEL */}
+
+      {/* KPI PANEL */}
+
+  <aside className="fixed right-0 top-0 w-[320px] h-screen bg-[#081726]/95 border-l border-cyan-400/20 p-6 overflow-y-auto z-50">
+
+  <h2 className="text-cyan-300 text-xl font-bold uppercase text-center mb-10 leading-10">
+
+    Key Performance Indicators
+
+  </h2>
+
+  <div className="space-y-3">
+
+    {/* TOTAL INCIDENTS */}
+
+    <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center hover:scale-[1.02] transition-all duration-300">
+
+      <p className="text-gray-400 uppercase mb-4">
+
+        Total Incidents
+
+      </p>
+
+      <h1 className="text-3xl font-bold text-cyan-300">
+
+        {kpis?.total_incidents}
+
+      </h1>
+
+    </div>
+
+    {/* REOPENED INCIDENTS */}
+
+    <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center hover:scale-[1.02] transition-all duration-300">
+
+      <p className="text-gray-400 uppercase mb-4">
+
+        Reopened Incidents
+
+      </p>
+
+      <h1 className="text-3xl font-bold text-orange-400">
+
+        {kpis?.reopened_incidents}
+
+      </h1>
+
+    </div>
+
+    {/* HIGH RISK RATE */}
+
+    <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center hover:scale-[1.02] transition-all duration-300">
+
+      <p className="text-gray-400 uppercase mb-4">
+
+        High Risk Rate
+
+      </p>
+
+      <h1 className="text-3xl font-bold text-red-400">
+
+        {kpis?.high_risk_rate}%
+
+      </h1>
+
+    </div>
+
+    {/* LOW RISK RATE */}
+
+    <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center hover:scale-[1.02] transition-all duration-300">
+
+      <p className="text-gray-400 uppercase mb-4">
+
+        Low Risk Rate
+
+      </p>
+
+      <h1 className="text-3xl font-bold text-green-400">
+
+        {kpis?.low_risk_rate}%
+
+      </h1>
+
+    </div>
+
+    {/* AVG RESOLUTION TIME */}
+
+    <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center hover:scale-[1.02] transition-all duration-300">
+
+      <p className="text-gray-400 uppercase mb-4">
+
+        Avg Resolution Time
+
+      </p>
+
+      <h1 className="text-3xl font-bold text-blue-400">
+
+        {kpis?.avg_resolution_time} hrs
+
+      </h1>
+
+    </div>
+
+    {/* NETWORK PERFORMANCE */}
+
+    <div className="bg-[#0B1B2B]/95 border border-cyan-400/20 rounded-[28px] p-8 text-center hover:scale-[1.02] transition-all duration-300">
+
+      <p className="text-gray-400 uppercase mb-4">
+
+        Network Performance%
+
+      </p>
+
+      <h1 className="text-3xl font-bold text-blue-400">
+
+        {kpis?.network_performance}%
+
+      </h1>
+
+    </div>
+
+  </div>
+
+  </aside>
 
     </div>
   )
+
+  
 }
+
 
 export default Dashboard
