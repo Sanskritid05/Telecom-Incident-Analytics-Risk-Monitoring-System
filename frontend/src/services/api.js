@@ -1,4 +1,9 @@
-const BASE_URL = 'https://telecom-ai-backend-pm1k.onrender.com'
+const BASE_URL =
+  'https://telecom-ai-backend-pm1k.onrender.com'
+
+// ==========================================
+// BACKEND WARMUP
+// ==========================================
 
 export const warmupBackend = async () => {
 
@@ -18,18 +23,37 @@ export const warmupBackend = async () => {
 
 const fetchAPI = async (endpoint) => {
 
-  const response = await fetch(
+  try {
 
-    `${BASE_URL}${endpoint}?t=${Date.now()}`,
+    const response = await fetch(
 
-    {
-      cache: 'no-store'
+      `${BASE_URL}${endpoint}?t=${Date.now()}`,
+
+      {
+        cache: 'no-store'
+      }
+    )
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        `HTTP ERROR: ${response.status}`
+      )
     }
-  )
 
-  return await response.json()
+    return await response.json()
+
+  } catch (error) {
+
+    console.log(
+      'API ERROR:',
+      error
+    )
+
+    return null
+  }
 }
-
 
 // ==========================================
 // GENERATE AI INSIGHT
@@ -42,7 +66,6 @@ export const generateInsight = async () => {
   )
 }
 
-
 // ==========================================
 // LIVE REOPEN PREDICTION
 // ==========================================
@@ -53,7 +76,6 @@ export const predictReopenRisk = async () => {
     '/live-prediction'
   )
 }
-
 
 // ==========================================
 // LIVE KPI METRICS
@@ -66,57 +88,8 @@ export const fetchLiveKPIs = async () => {
   )
 }
 
-
 // ==========================================
-// MONTHLY INCIDENT TRENDS
-// ==========================================
-
-export const fetchMonthlyTrends = async () => {
-
-  return await fetchAPI(
-    '/monthly-trends'
-  )
-}
-
-// ==========================================
-// REGIONAL ANALYSIS
-// ==========================================
-
-export const fetchRegionAnalysis = async () => {
-
-  return await fetchAPI(
-    '/region-analysis'
-  )
-}
-
-// ==========================================
-// NETWORK PERFORMANCE
-// ==========================================
-
-export const fetchNetworkPerformance = async () => {
-
-  return await fetchAPI(
-    '/network-performance'
-  )
-}
-
-// ==========================================
-// RISK DISTRIBUTION
-// ==========================================
-
-export const fetchRiskDistribution = async () => {
-
-  return await fetchAPI(
-    '/risk-distribution'
-  )
-}
-
-/// ==========================================
-// LIVE PERSONALIZED DASHBOARDS
-// ==========================================
-
-/// ==========================================
-// MONTHLY TREND DASHBOARDS
+// MONTHLY DASHBOARD
 // ==========================================
 
 export const fetchMonthlyDashboard = async () => {
@@ -125,7 +98,6 @@ export const fetchMonthlyDashboard = async () => {
     '/dashboard/monthly-trends'
   )
 }
-
 
 // ==========================================
 // REGION ANALYSIS DASHBOARD
@@ -138,7 +110,6 @@ export const fetchRegionDashboard = async () => {
   )
 }
 
-
 // ==========================================
 // NETWORK PERFORMANCE DASHBOARD
 // ==========================================
@@ -149,7 +120,6 @@ export const fetchNetworkDashboard = async () => {
     '/dashboard/network-performance'
   )
 }
-
 
 // ==========================================
 // REOPEN RISK DASHBOARD
