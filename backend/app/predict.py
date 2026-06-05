@@ -761,109 +761,253 @@ def monthly_trends():
 # ==========================================
 # LIVE REGION ANALYSIS
 # ==========================================
+@app.get('/dashboard/region-analysis')
 
-@app.get('/region-analysis')
+def region_dashboard():
 
-def region_analysis():
+    try:
 
-    region_data = (
+        # ==========================================
+        # REGION DISTRIBUTION
+        # ==========================================
 
-        streaming_data
+        region_distribution = (
 
-        .groupby('Region')
+            streaming_data
 
-        .size()
+            .groupby('Region')
 
-        .reset_index(name='value')
+            .size()
 
-    )
+            .reset_index(name='value')
 
-    region_data = region_data.rename(
+        )
 
-        columns={
+        region_mapping = {
 
-            'Region': 'name'
+            0: 'APAC',
+            1: 'EMEA',
+            2: 'LATAM',
+            3: 'NAM'
         }
-    )
 
-    return region_data.to_dict(
+        region_distribution['name'] = (
 
-        orient='records'
-    )
+            region_distribution['Region']
 
-# ==========================================
-# LIVE NETWORK PERFORMANCE
-# ==========================================
+            .map(region_mapping)
 
-@app.get('/network-performance')
+        )
 
-def network_performance():
+        region_distribution_json = (
 
-    total_incidents = len(streaming_data)
+            region_distribution[[
 
-    high_priority = len(
+                'name',
+                'value'
 
-        streaming_data[
-            streaming_data['Priority'] <= 2
+            ]]
+
+            .to_dict(orient='records')
+
+        )
+
+        # ==========================================
+        # APAC DATA
+        # ==========================================
+
+        apac_data = streaming_data[
+
+            streaming_data['Region'] == 0
+
         ]
-    )
 
-    fiber_score = max(
-        70,
-        98 - (high_priority * 0.01)
-    )
+        monthly = (
 
-    network_data = [
+            apac_data
 
-        {
-            "name": "Fiber",
-            "value": round(fiber_score, 2)
-        },
+            .groupby('Open_Month')
 
-        {
-            "name": "5G",
-            "value": round(fiber_score - 5, 2)
-        },
+            .size()
 
-        {
-            "name": "Core",
-            "value": round(fiber_score + 3, 2)
+            .reset_index(name='value')
+
+        )
+
+        month_mapping = {
+
+            1:'Jan',
+            2:'Feb',
+            3:'Mar',
+            4:'Apr',
+            5:'May',
+            6:'Jun',
+            7:'Jul',
+            8:'Aug',
+            9:'Sep',
+            10:'Oct',
+            11:'Nov',
+            12:'Dec'
         }
-    ]
 
-    return network_data
+        monthly['month'] = (
 
-# ==========================================
-# LIVE RISK DISTRIBUTION
-# ==========================================
+            monthly['Open_Month']
 
-@app.get('/risk-distribution')
+            .map(month_mapping)
 
-def risk_distribution():
+        )
 
-    low = random.randint(55, 70)
+        apac_growth = (
 
-    medium = random.randint(20, 30)
+            monthly[[
 
-    high = 100 - low - medium
+                'month',
+                'value'
 
-    return [
+            ]]
 
-        {
-            "name": "Low",
-            "value": low
-        },
+            .to_dict(orient='records')
 
-        {
-            "name": "Medium",
-            "value": medium
-        },
+        )
 
-        {
-            "name": "High",
-            "value": high
+        # ==========================================
+        # REGIONAL RISK
+        # ==========================================
+
+        regional_risk = [
+
+            {
+
+                "region": row['name'],
+
+                "value": round(
+
+                    row['value'] * 0.02,
+
+                    2
+                )
+            }
+
+            for _, row in region_distribution.iterrows()
+
+        ]
+
+        # ==========================================
+        # NETWORK STABILITY
+        # ==========================================
+
+        network_stability = [
+
+            {
+
+                "region": row['name'],
+
+                "value": round(
+
+                    max(
+                        70,
+                        100 - row['value'] * 0.001
+                    ),
+
+                    2
+                )
+            }
+
+            for _, row in region_distribution.iterrows()
+
+        ]
+
+        # ==========================================
+        # KPI VALUES
+        # ==========================================
+
+        apac_value = next(
+
+            (
+
+                item['value']
+
+                for item in region_distribution_json
+
+                if item['name'] == 'APAC'
+
+            ),
+
+            0
+        )
+
+        emea_value = next(
+
+            (
+
+                item['value']
+
+                for item in region_distribution_json
+
+                if item['name'] == 'EMEA'
+
+            ),
+
+            0
+        )
+
+        highest_region = max(
+
+            region_distribution_json,
+
+            key=lambda x: x['value']
+
+        )['name']
+
+        # ==========================================
+        # RETURN
+        # ==========================================
+
+        return {
+
+            "regionDistribution":
+
+                region_distribution_json,
+
+            "apacGrowth":
+
+                apac_growth,
+
+            "regionalRisk":
+
+                regional_risk,
+
+            "networkStability":
+
+                network_stability,
+
+            "kpis": {
+
+                "apac":
+
+                    apac_value,
+
+                "emea":
+
+                    emea_value,
+
+                "latam_growth":
+
+                    "12%",
+
+                "highest_region":
+
+                    highest_region
+            }
         }
-    ]
+
+    except Exception as e:
+
+        return {
+
+            "error": str(e)
+        }
 
 # ==========================================
 # LIVE PERSONALIZED DISTRIBUTION
