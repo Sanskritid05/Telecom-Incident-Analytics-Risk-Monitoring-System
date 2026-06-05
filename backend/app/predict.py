@@ -1528,10 +1528,16 @@ def network_dashboard():
 def reopen_risk_dashboard():
 
     # ==========================================
-    # REAL ML PROBABILITIES
+    # PREPARE MODEL INPUT
     # ==========================================
 
-    model_input = streaming_data.copy()
+    model_input = streaming_data.sample(
+
+        min(3000, len(streaming_data)),
+
+        random_state=42
+
+    ).copy()
 
     drop_columns = [
 
@@ -1560,7 +1566,9 @@ def reopen_risk_dashboard():
 
         if col in model_input.columns:
 
-            model_input = model_input.drop(columns=[col])
+            model_input = model_input.drop(
+                columns=[col]
+            )
 
     expected_columns = ml_model.feature_names_in_
 
@@ -1570,7 +1578,9 @@ def reopen_risk_dashboard():
 
             model_input[col] = 0
 
-    model_input = model_input[expected_columns]
+    model_input = model_input[
+        expected_columns
+    ]
 
     for col in model_input.columns:
 
@@ -1583,28 +1593,42 @@ def reopen_risk_dashboard():
 
     model_input = model_input.fillna(0)
 
-    probs = ml_model.predict_proba(
-        model_input
-    )[:, 1]
-    
+    # ==========================================
+    # ML PROBABILITIES
+    # ==========================================
+
+    try:
+
+        probs = ml_model.predict_proba(
+            model_input
+        )[:, 1]
+
+    except Exception as e:
+
+        return {
+            "error": str(e)
+        }
 
     # ==========================================
     # RISK SEGMENTS
     # ==========================================
 
     low = int(
-        np.sum(probs < 0.4)
+        np.sum(probs < 0.2)
     )
 
     medium = int(
+
         np.sum(
-            (probs >= 0.4) &
-            (probs < 0.7)
+
+            (probs >= 0.2) &
+
+            (probs < 0.5)
         )
     )
 
     high = int(
-        np.sum(probs >= 0.7)
+        np.sum(probs >= 0.5)
     )
 
     total = low + medium + high
@@ -1617,36 +1641,70 @@ def reopen_risk_dashboard():
 
         {
             "name": "Low",
+
             "value": round(
+
                 (low / total) * 100,
+
                 2
             )
         },
 
         {
             "name": "Medium",
+
             "value": round(
+
                 (medium / total) * 100,
+
                 2
             )
         },
 
         {
             "name": "High",
+
             "value": round(
+
                 (high / total) * 100,
+
                 2
             )
         }
     ]
 
     # ==========================================
-    # MONTHLY GROUPING
+    # MONTH MAPPING
     # ==========================================
 
-    monthly = (
+    month_mapping = {
 
-        streaming_data
+        1: 'Jan',
+        2: 'Feb',
+        3: 'Mar',
+        4: 'Apr',
+        5: 'May',
+        6: 'Jun',
+        7: 'Jul',
+        8: 'Aug',
+        9: 'Sep',
+        10: 'Oct',
+        11: 'Nov',
+        12: 'Dec'
+    }
+
+    # ==========================================
+    # REAL REOPEN TREND
+    # ==========================================
+
+    reopened_data = streaming_data[
+
+        streaming_data['Was_Reopened'] == 1
+    ]
+
+    monthly_reopens = (
+
+        reopened_data
 
         .groupby('Open_Month')
 
@@ -1655,83 +1713,123 @@ def reopen_risk_dashboard():
         .reset_index(name='value')
     )
 
-    month_mapping = {
+    monthly_reopens['month'] = (
 
-        1:'Jan',
-        2:'Feb',
-        3:'Mar',
-        4:'Apr',
-        5:'May',
-        6:'Jun',
-        7:'Jul',
-        8:'Aug',
-        9:'Sep',
-        10:'Oct',
-        11:'Nov',
-        12:'Dec'
-    }
+        monthly_reopens['Open_Month']
 
-    monthly['month'] = monthly[
-        'Open_Month'
-    ].map(month_mapping)
+        .map(month_mapping)
+    )
+
+    reopen_trend = monthly_reopens[[
+
+        'month',
+        'value'
+
+    ]].to_dict(
+        orient='records'
+    )
 
     # ==========================================
-    # REOPEN TRENDS
+    # REAL ESCALATION DATA
     # ==========================================
 
-    reopen_trend = [
+    escalated = streaming_data[
 
-        {
-            "month": row['month'],
-            "value": int(
-                row['value'] * 0.08
-            )
-        }
-
-        for _, row in monthly.iterrows()
+        streaming_data['Priority'] <= 2
     ]
 
-    # ==========================================
-    # ESCALATION DENSITY
-    # ==========================================
+    monthly_escalation = (
 
-    escalation_data = [
+        escalated
 
-        {
-            "month": row['month'],
-            "value": int(
-                row['value'] * 0.03
-            )
-        }
+        .groupby('Open_Month')
 
-        for _, row in monthly.iterrows()
-    ]
+        .size()
 
-    # ==========================================
-    # RESOLUTION EFFICIENCY
-    # ==========================================
+        .reset_index(name='value')
+    )
 
-    resolution_efficiency = [
+    monthly_escalation['month'] = (
 
-        {
-            "month": row['month'],
+        monthly_escalation['Open_Month']
 
-            "value": round(
+        .map(month_mapping)
+    )
 
-                max(
-                    50,
-                    100 - row['value'] * 0.01
-                ),
+    escalation_data = monthly_escalation[[
 
-                2
-            )
-        }
+        'month',
+        'value'
 
-        for _, row in monthly.iterrows()
-    ]
+    ]].to_dict(
+        orient='records'
+    )
 
     # ==========================================
-    # RETURN
+    # REAL RESOLUTION EFFICIENCY
+    # ==========================================
+
+    resolution_efficiency = []
+
+    for month in sorted(
+
+        streaming_data[
+            'Open_Month'
+        ].dropna().unique()
+    ):
+
+        month_data = streaming_data[
+
+            streaming_data[
+                'Open_Month'
+            ] == month
+        ]
+
+        resolved_ratio = round(
+
+            (
+
+                len(
+
+                    month_data[
+
+                        month_data[
+                            'Was_Reopened'
+                        ] == 0
+                    ]
+                )
+
+                /
+
+                len(month_data)
+
+            ) * 100,
+
+            2
+        )
+
+        resolution_efficiency.append({
+
+            "month": month_mapping.get(month),
+
+            "value": resolved_ratio
+        })
+
+    # ==========================================
+    # KPI VALUES
+    # ==========================================
+
+    avg_reopen_time = round(
+
+        streaming_data[
+            'Reopen_Time'
+        ].fillna(0).mean(),
+
+        2
+    )
+
+    # ==========================================
+    # RETURN RESPONSE
     # ==========================================
 
     return {
@@ -1764,10 +1862,10 @@ def reopen_risk_dashboard():
 
             "escalated_tickets":
 
-                str(int(high * 0.3)),
+                str(len(escalated)),
 
             "avg_reopen_time":
 
-                f"{round(high * 0.02, 1)} hrs"
+                f"{avg_reopen_time} hrs"
         }
     }
