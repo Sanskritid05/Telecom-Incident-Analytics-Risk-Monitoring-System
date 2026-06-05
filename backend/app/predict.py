@@ -879,6 +879,10 @@ def risk_distribution():
 
 def monthly_dashboard():
 
+    # ==========================================
+    # MONTHLY INCIDENT DATA
+    # ==========================================
+
     monthly_data = (
 
         streaming_data
@@ -892,24 +896,29 @@ def monthly_dashboard():
 
     month_mapping = {
 
-        1:'Jan',
-        2:'Feb',
-        3:'Mar',
-        4:'Apr',
-        5:'May',
-        6:'Jun',
-        7:'Jul',
-        8:'Aug',
-        9:'Sep',
-        10:'Oct',
-        11:'Nov',
-        12:'Dec'
+        1: 'Jan',
+        2: 'Feb',
+        3: 'Mar',
+        4: 'Apr',
+        5: 'May',
+        6: 'Jun',
+        7: 'Jul',
+        8: 'Aug',
+        9: 'Sep',
+        10: 'Oct',
+        11: 'Nov',
+        12: 'Dec'
     }
 
     monthly_data['month'] = monthly_data[
         'Open_Month'
     ].map(month_mapping)
 
+    monthly_data = monthly_data.dropna()
+
+    # ==========================================
+    # MONTHLY INCIDENT COUNT
+    # ==========================================
 
     monthly_incidents = monthly_data[[
 
@@ -920,17 +929,26 @@ def monthly_dashboard():
         orient='records'
     )
 
+    # ==========================================
+    # HIGH RISK INCIDENTS
+    # ==========================================
 
     high_risk = [
 
         {
             "month": row['month'],
-            "value": int(row['value'] * 0.08)
+
+            "value": int(
+                row['value'] * 0.08
+            )
         }
 
         for _, row in monthly_data.iterrows()
     ]
 
+    # ==========================================
+    # REGION DISTRIBUTION
+    # ==========================================
 
     region_count = (
 
@@ -943,18 +961,13 @@ def monthly_dashboard():
         .reset_index(name='value')
     )
 
-    region_mapping = {
+    region_count = region_count.rename(
 
-        0:'APAC',
-        1:'EMEA',
-        2:'LATAM',
-        3:'NAM'
-    }
+        columns={
 
-    region_count['name'] = region_count[
-        'Region'
-    ].map(region_mapping)
-
+            'Region': 'name'
+        }
+    )
 
     region_count = region_count[[
 
@@ -965,6 +978,9 @@ def monthly_dashboard():
         orient='records'
     )
 
+    # ==========================================
+    # RISK LEVEL DISTRIBUTION
+    # ==========================================
 
     risk_level = [
 
@@ -984,6 +1000,20 @@ def monthly_dashboard():
         }
     ]
 
+    # ==========================================
+    # KPI SECTION
+    # ==========================================
+
+    peak_month = (
+
+        monthly_data.loc[
+            monthly_data['value'].idxmax()
+        ]['month']
+
+        if not monthly_data.empty
+
+        else 'N/A'
+    )
 
     return {
 
@@ -1007,12 +1037,17 @@ def monthly_dashboard():
 
             "total_incidents":
 
-                len(streaming_data),
+                int(len(streaming_data)),
 
             "high_risk":
 
-                int(
-                    len(streaming_data) * 0.08
+                round(
+                    (
+                        len(streaming_data[
+                            streaming_data['Was_Reopened'] == 1
+                        ]) / len(streaming_data)
+                    ) * 100,
+                    2
                 ),
 
             "growth":
@@ -1021,9 +1056,7 @@ def monthly_dashboard():
 
             "peak_month":
 
-                monthly_data.loc[
-                    monthly_data['value'].idxmax()
-                ]['month']
+                peak_month
         }
     }
 
@@ -1052,19 +1085,12 @@ def region_dashboard():
             .reset_index(name='value')
         )
 
-        region_mapping = {
+        region_distribution = region_distribution.rename(
 
-            0: 'APAC',
-            1: 'EMEA',
-            2: 'LATAM',
-            3: 'NAM'
-        }
+            columns={
 
-        region_distribution['name'] = (
-
-            region_distribution['Region']
-
-            .map(region_mapping)
+                'Region': 'name'
+            }
         )
 
         region_distribution = region_distribution[[
@@ -1076,16 +1102,14 @@ def region_dashboard():
             orient='records'
         )
 
-
         # ==========================================
-        # MONTHLY DATA
+        # APAC MONTHLY DATA
         # ==========================================
 
         apac_data = streaming_data[
 
-            streaming_data['Region'] == 0
+            streaming_data['Region'] == 'APAC'
         ]
-
 
         monthly = (
 
@@ -1100,18 +1124,18 @@ def region_dashboard():
 
         month_mapping = {
 
-            1:'Jan',
-            2:'Feb',
-            3:'Mar',
-            4:'Apr',
-            5:'May',
-            6:'Jun',
-            7:'Jul',
-            8:'Aug',
-            9:'Sep',
-            10:'Oct',
-            11:'Nov',
-            12:'Dec'
+            1: 'Jan',
+            2: 'Feb',
+            3: 'Mar',
+            4: 'Apr',
+            5: 'May',
+            6: 'Jun',
+            7: 'Jul',
+            8: 'Aug',
+            9: 'Sep',
+            10: 'Oct',
+            11: 'Nov',
+            12: 'Dec'
         }
 
         monthly['month'] = monthly[
@@ -1119,7 +1143,6 @@ def region_dashboard():
         ].map(month_mapping)
 
         monthly = monthly.dropna()
-
 
         # ==========================================
         # APAC GROWTH
@@ -1133,7 +1156,6 @@ def region_dashboard():
         ]].to_dict(
             orient='records'
         )
-
 
         # ==========================================
         # REGIONAL RISK
@@ -1153,9 +1175,8 @@ def region_dashboard():
             for item in region_distribution
         ]
 
-
         # ==========================================
-        # REGIONAL OPERATIONAL STABILITY
+        # NETWORK STABILITY
         # ==========================================
 
         network_stability = [
@@ -1177,7 +1198,6 @@ def region_dashboard():
             for item in region_distribution
         ]
 
-
         # ==========================================
         # KPI VALUES
         # ==========================================
@@ -1195,7 +1215,6 @@ def region_dashboard():
             0
         )
 
-
         emea_value = next(
 
             (
@@ -1209,7 +1228,6 @@ def region_dashboard():
             0
         )
 
-
         highest_region = (
 
             max(
@@ -1221,7 +1239,6 @@ def region_dashboard():
 
             else 'N/A'
         )
-
 
         # ==========================================
         # RETURN RESPONSE
