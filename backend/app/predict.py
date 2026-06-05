@@ -58,10 +58,6 @@ streaming_data = pd.read_csv(
     low_memory=False
 )
 
-streaming_data['Urgency'] = (
-    streaming_data['Urgency']
-    .astype(str)
-)
 
 # ==========================================
 # FASTAPI APP
@@ -609,12 +605,14 @@ def live_prediction():
 
         'actual_reopened': actual_target,
 
-        'region': str(
-            incident['Region']
+        'region': region_mapping.get(
+            incident['Region'],
+            'Unknown'
         ),
 
-        'network_type': str(
-            incident['Network_Type']
+        'network_type': network_mapping.get(
+            incident['Network_Type'],
+            'Unknown'
         ),
 
         'priority': int(
@@ -1085,12 +1083,16 @@ def region_dashboard():
             .reset_index(name='value')
         )
 
-        region_distribution = region_distribution.rename(
+        region_mapping = {
+            0: 'APAC',
+            1: 'EMEA',
+            2: 'LATAM',
+            3: 'NAM'
+        }
 
-            columns={
-
-                'Region': 'name'
-            }
+        region_distribution['name'] = (
+            region_distribution['Region']
+            .map(region_mapping)
         )
 
         region_distribution = region_distribution[[
@@ -1108,7 +1110,7 @@ def region_dashboard():
 
         apac_data = streaming_data[
 
-            streaming_data['Region'] == 'APAC'
+            streaming_data['Region'] == 0
         ]
 
         monthly = (
@@ -1533,7 +1535,7 @@ def reopen_risk_dashboard():
 
     model_input = streaming_data.sample(
 
-        min(3000, len(streaming_data)),
+        min(1000, len(streaming_data)),
 
         random_state=42
 
@@ -1819,14 +1821,29 @@ def reopen_risk_dashboard():
     # KPI VALUES
     # ==========================================
 
-    avg_reopen_time = round(
+    # ==========================================
+    # SAFE REOPEN TIME
+    # ==========================================
 
-        streaming_data[
-            'Reopen_Time'
-        ].fillna(0).mean(),
+    if 'Reopen_Time' in streaming_data.columns:
 
-        2
-    )
+        reopen_time_numeric = pd.to_numeric(
+
+            streaming_data['Reopen_Time'],
+
+            errors='coerce'
+        )
+
+        avg_reopen_time = round(
+
+            reopen_time_numeric.fillna(0).mean(),
+
+            2
+        )
+
+    else:
+
+        avg_reopen_time = 0
 
     # ==========================================
     # RETURN RESPONSE
