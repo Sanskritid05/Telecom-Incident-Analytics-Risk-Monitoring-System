@@ -1,6 +1,6 @@
 # Telecom Incident Analytics & Risk Monitoring System
 
-An AI-powered telecom operational intelligence platform designed to monitor telecom incidents, estimate reopen risk probabilities, generate operational analytics, and simulate enterprise-grade incident intelligence workflows using Machine Learning, FastAPI, React, and cloud deployment infrastructure.
+An AI-assisted telecom operational intelligence platform designed to monitor telecom incidents, estimate reopen risk probabilities, generate operational analytics, and simulate enterprise-grade incident intelligence workflows using Machine Learning, FastAPI, React, and cloud deployment infrastructure.
 
 ---
 
